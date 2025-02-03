@@ -1,0 +1,35 @@
+log_debug: true
+
+http:
+  - listen_addr: ":9090"
+    allowed_networks: ["0.0.0.0/0"]
+    read_timeout: 5m
+    write_timeout: 10m
+
+tcp:
+  - listen_addr: ":9091"
+    allowed_networks: ["0.0.0.0/0"]
+    read_timeout: 5m
+    write_timeout: 10m
+
+users:
+  - name: "default"
+    password: "password"
+    to_cluster: "analytics_cluster"
+    to_user: "default"
+
+clusters:
+  - name: "analytics_cluster"
+    nodes: [
+      "clickhouse-node1:8123",
+      "clickhouse-node2:8123"
+    ]
+    health_check:
+      interval: 10s
+      timeout: 2s
+      query: "SELECT 1"
+    retries: 3
+    retry_timeout: 10s
+    circuit_breaker:
+      max_failures: 3
+      disable_period: 30s

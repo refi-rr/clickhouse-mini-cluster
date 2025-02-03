@@ -1,0 +1,33 @@
+<yandex>
+  <listen_host>0.0.0.0</listen_host>
+
+  <!-- Remote Servers untuk Cluster -->
+  <remote_servers>
+    <analytics_cluster>
+      <shard>
+        <replica>
+          <host>clickhouse-node1</host>
+          <port>9000</port>
+        </replica>
+        <replica>
+          <host>clickhouse-node2</host>
+          <port>9000</port>
+        </replica>
+      </shard>
+    </analytics_cluster>
+  </remote_servers>
+
+  <!-- Zookeeper (Opsional) -->
+  <zookeeper>
+    <node>
+      <host>zookeeper</host>
+      <port>2181</port>
+    </node>
+  </zookeeper>
+
+  <!-- Macro untuk Shard & Replica -->
+  <macros>
+    <shard>1</shard>
+    <replica>replica1</replica>
+  </macros>
+</yandex>

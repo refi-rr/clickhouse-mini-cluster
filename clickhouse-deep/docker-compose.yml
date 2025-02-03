@@ -1,0 +1,63 @@
+version: '3.7'
+
+services:
+  # ZooKeeper untuk manajemen replikasi
+  zookeeper:
+    image: zookeeper:3.8
+    container_name: zookeeper
+    networks:
+      - ch_network
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888;2181
+
+  # ClickHouse Node 1 (Shard 1, Replica 1)
+  clickhouse-node1:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-node1
+    volumes:
+      - ./clickhouse-node1/config.xml:/etc/clickhouse-server/config.xml
+      - ./clickhouse-node1/users.xml:/etc/clickhouse-server/users.xml
+    networks:
+      - ch_network
+    depends_on:
+      - zookeeper
+    ports:
+      - "8123:8123"  # HTTP API
+      - "9000:9000"  # Native TCP
+
+  # ClickHouse Node 2 (Shard 1, Replica 2)
+  clickhouse-node2:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-node2
+    volumes:
+      - ./clickhouse-node2/config.xml:/etc/clickhouse-server/config.xml
+      - ./clickhouse-node2/users.xml:/etc/clickhouse-server/users.xml
+    networks:
+      - ch_network
+    depends_on:
+      - zookeeper
+    ports:
+      - "8124:8123"  # HTTP API
+      - "9001:9000"  # Native TCP
+
+  # CHProxy
+  chproxy:
+    image: contentquare/chproxy:latest
+    container_name: chproxy
+    volumes:
+      - ./chproxy/config.yml:/etc/chproxy/config.yml
+    networks:
+      - ch_network
+    ports:
+      - "9090:9090"  # HTTP
+      - "9091:9091"  # Native TCP
+    depends_on:
+      - clickhouse-node1
+      - clickhouse-node2
+
+networks:
+  ch_network:
+    driver: bridge
